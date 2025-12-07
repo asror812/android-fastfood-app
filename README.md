@@ -11,11 +11,13 @@ Users can browse categories, view products, add to cart, mark favorites, and aut
 Phone number login
 JWT-based authentication
 Secure token storage
+<img width="266" height="616" alt="image" src="https://github.com/user-attachments/assets/9c11c30a-333b-4a5f-a09c-4d99f299f937" />
 
 🛒 Menu & Products
 Load categories from backend
 View product list (Lavash, Pizza, Burgers...)
 Glide image loading
+<img width="266" height="616" alt="image" src="https://github.com/user-attachments/assets/3a59a235-4f35-481d-b73c-54e13b50627b" />
 
 ❤️ Favorites
 Add/remove product to favorites
