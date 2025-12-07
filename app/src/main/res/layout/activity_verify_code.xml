@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/verifyLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="@color/md_theme_background"
+    tools:context=".activity.VerifyCodeActivity">
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SMS kodni kiriting"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:textColor="@color/md_theme_onBackground"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="60dp" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvSubtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="@color/md_theme_outline"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="32dp" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/smsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SMS kod"
+        android:textSize="14sp"
+        android:textColor="@color/md_theme_outline"
+        app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="4dp"/>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:45"
+        android:textSize="14sp"
+        android:textColor="@color/md_theme_outline"
+        app:layout_constraintBaseline_toBaselineOf="@id/smsLabel"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- SIMPLE OTP EDITTEXT -->
+    <EditText
+        android:id="@+id/etCode"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_otp_input"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:inputType="number"
+        android:textColor="@color/md_theme_onBackground"
+        android:textSize="20sp"
+        android:hint="• • • •"
+        android:textCursorDrawable="@null"
+        app:layout_constraintTop_toBottomOf="@id/smsLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/icRefresh"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_refresh"
+        app:tint="@color/md_theme_primary"
+        app:layout_constraintTop_toBottomOf="@id/etCode"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="6dp"/>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/resend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kodini qayta olish"
+        android:textColor="@color/md_theme_primary"
+        android:textSize="15sp"
+        app:layout_constraintStart_toEndOf="@id/icRefresh"
+        app:layout_constraintTop_toTopOf="@id/icRefresh"
+        app:layout_constraintBottom_toBottomOf="@id/icRefresh"
+        android:layout_marginStart="8dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
