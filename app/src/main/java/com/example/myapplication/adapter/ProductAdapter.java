@@ -18,6 +18,7 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.myapplication.R;
 import com.example.myapplication.api.ApiClient;
 import com.example.myapplication.api.FavouriteApi;
+import com.example.myapplication.api.dto.response.ApiMessageResponse;
 import com.example.myapplication.api.dto.response.ProductResponseDto;
 import com.example.myapplication.security.TokenStorage;
 
@@ -75,22 +76,23 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         });
 
         holder.imgFavorite.setOnClickListener(v -> {
-            favouriteApi.addFavorite(p.getId()).enqueue(new Callback<Void>() {
+            favouriteApi.addFavorite(p.getId()).enqueue(new Callback<>() {
                 @Override
-                public void onResponse(Call<Void> call, Response<Void> response) {
+                public void onResponse(Call<ApiMessageResponse> call, Response<ApiMessageResponse> response) {
                     if (!response.isSuccessful()) {
                         holder.imgFavorite.setImageResource(R.drawable.ic_favorite);
-                        p.setFavorite(false);
+                        //p.setFavorite(false);
                     }
                 }
 
+
                 @Override
-                public void onFailure(Call<Void> call, Throwable t) {
+                public void onFailure(Call<ApiMessageResponse> call, Throwable t) {
                     holder.imgFavorite.setImageResource(R.drawable.img_favorite);
-                    p.setFavorite(false);
+                    // p.setFavorite(false);
                 }
             });
-        }
+        });
     }
 
     @Override
