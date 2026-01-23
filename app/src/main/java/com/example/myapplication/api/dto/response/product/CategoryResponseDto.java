@@ -1,15 +1,11 @@
-package com.example.myapplication.api.dto.response;
+package com.example.myapplication.api.dto.response.product;
 
 import java.util.UUID;
 
-public class SubCategory {
-    public SubCategory(UUID id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+public class CategoryResponseDto {
+    private UUID id;
 
-    public SubCategory() {
-    }
+    private String name;
 
     public UUID getId() {
         return id;
@@ -26,7 +22,4 @@ public class SubCategory {
     public void setName(String name) {
         this.name = name;
     }
-
-    private UUID id;
-    private String name;
 }

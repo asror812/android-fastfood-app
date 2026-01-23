@@ -1,7 +1,6 @@
 package com.example.myapplication.adapter;
 
 import android.annotation.SuppressLint;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.R;
-import com.example.myapplication.api.dto.response.CategoryResponseDto;
+import com.example.myapplication.api.dto.response.product.CategoryResponseDto;
 
 import java.util.List;
 import android.content.Context;

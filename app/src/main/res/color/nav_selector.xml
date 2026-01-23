@@ -7,4 +7,6 @@
 
     <!-- Unselected tab color -->
     <item android:color="#9E9E9E" />
+
+
 </selector>

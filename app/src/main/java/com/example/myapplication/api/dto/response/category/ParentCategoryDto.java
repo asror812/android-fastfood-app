@@ -1,4 +1,4 @@
-package com.example.myapplication.api.dto.response;
+package com.example.myapplication.api.dto.response.category;
 
 import java.util.UUID;
 

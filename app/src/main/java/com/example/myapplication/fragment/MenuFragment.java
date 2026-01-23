@@ -19,11 +19,10 @@ import com.example.myapplication.adapter.CategoryAdapter;
 import com.example.myapplication.adapter.ProductAdapter;
 import com.example.myapplication.api.ApiClient;
 import com.example.myapplication.api.CategoryApi;
-import com.example.myapplication.api.dto.response.CategoryResponseDto;
-import com.example.myapplication.api.dto.response.ProductResponseDto;
+import com.example.myapplication.api.dto.response.product.CategoryResponseDto;
+import com.example.myapplication.api.dto.response.product.ProductResponseDto;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,7 +64,7 @@ public class MenuFragment extends Fragment {
             loadProducts(category.getId());
         });
 
-        productAdapter = new ProductAdapter(productList, getContext());
+        productAdapter = new ProductAdapter(productList, getContext(), ProductAdapter.Mode.MENU);
 
         rvCategories.setAdapter(categoryAdapter);
         rvProducts.setAdapter(productAdapter);
@@ -76,7 +75,6 @@ public class MenuFragment extends Fragment {
     }
 
     private void loadCategories() {
-
         categoryApi.getAllParentCategories().enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<CategoryResponseDto>> call,

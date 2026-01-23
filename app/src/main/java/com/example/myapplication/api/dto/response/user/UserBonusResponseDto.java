@@ -1,4 +1,4 @@
-package com.example.myapplication.api.dto.response;
+package com.example.myapplication.api.dto.response.user;
 
 import java.time.LocalDate;
 import java.util.UUID;

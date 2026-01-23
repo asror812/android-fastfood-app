@@ -14,14 +14,14 @@ import com.example.myapplication.fragment.RestaurantsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 
-public class Main1Activity extends AppCompatActivity {
+public class BottomNavigation extends AppCompatActivity {
     private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main_1);
+        setContentView(R.layout.bottom_navigation);
 
         bottomNav = findViewById(R.id.bottomNav);
         loadFragment(new HomeFragment());

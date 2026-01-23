@@ -13,12 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.myapplication.R;
-import com.example.myapplication.activity.RegisterActivity;
-import com.example.myapplication.activity.VerifyCodeActivity;
 import com.example.myapplication.adapter.FavoriteAdapter;
+import com.example.myapplication.adapter.ProductAdapter;
 import com.example.myapplication.api.ApiClient;
 import com.example.myapplication.api.FavouriteApi;
-import com.example.myapplication.api.dto.response.ProductResponseDto;
+import com.example.myapplication.api.dto.response.product.ProductResponseDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,40 +29,38 @@ import retrofit2.Response;
 public class FavoritesFragment extends Fragment {
     RecyclerView rv;
     Button btnClear;
-    FavoriteAdapter adapter;
+    ProductAdapter adapter;
 
     FavouriteApi api;
     List<ProductResponseDto> list = new ArrayList<>();
-
-    FavoriteAdapter favoriteAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View v = inflater.inflate(R.layout.fragment_favorites, container, false);
+        View view = inflater.inflate(R.layout.fragment_favorites, container, false);
 
-        rv = v.findViewById(R.id.rvFavorites);
-        btnClear = v.findViewById(R.id.btnClear);
+        api = ApiClient.getClient(requireActivity()).create(FavouriteApi.class);
+
+        rv = view.findViewById(R.id.rvFavorites);
+        btnClear = view.findViewById(R.id.btnClear);
 
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        adapter = new FavoriteAdapter(list, requireContext());
+        adapter = new ProductAdapter(list, getContext(), ProductAdapter.Mode.MENU);
         rv.setAdapter(adapter);
 
         loadFavorites();
 
-        btnClear.setOnClickListener(view -> {
+        btnClear.setOnClickListener(v -> {
             list.clear();
             adapter.notifyDataSetChanged();
         });
 
-        return v;
+        return view;
     }
 
     private void loadFavorites() {
-        api = ApiClient.getClient(requireActivity()).create(FavouriteApi.class);
-
         api.getFavoriteProducts().enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<ProductResponseDto>> call, Response<List<ProductResponseDto>> response) {
@@ -80,7 +77,7 @@ public class FavoritesFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<ProductResponseDto>> call, Throwable t) {
-
+                Log.e("FavoriteFragment", t.getMessage());
             }
         });
     }

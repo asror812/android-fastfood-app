@@ -5,7 +5,7 @@ import com.example.myapplication.api.dto.request.SignUpDto;
 import com.example.myapplication.api.dto.request.ValidatePhoneNumberDto;
 import com.example.myapplication.api.dto.response.ApiMessageResponse;
 import com.example.myapplication.api.dto.response.TokenResponseDto;
-import com.example.myapplication.api.dto.response.UserResponseDto;
+import com.example.myapplication.api.dto.response.user.UserResponseDto;
 
 import retrofit2.Call;
 import retrofit2.http.Body;

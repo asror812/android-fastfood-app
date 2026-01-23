@@ -4,17 +4,11 @@ package com.example.myapplication.api.dto.request;
 import java.time.LocalDate;
 
 public class UserDto {
-    private String name;
+    protected String name;
 
-    private String phoneNumber;
+    protected String phoneNumber;
 
-    private LocalDate birthDate;
-
-    public UserDto(String name, String phoneNumber, LocalDate birthDate) {
-        this.name = name;
-        this.phoneNumber = phoneNumber;
-        this.birthDate = birthDate;
-    }
+    protected LocalDate birthDate;
 
     public UserDto(){}
 

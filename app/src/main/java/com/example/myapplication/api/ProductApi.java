@@ -1,6 +1,6 @@
 package com.example.myapplication.api;
 
-import com.example.myapplication.api.dto.response.ProductResponseDto;
+import com.example.myapplication.api.dto.response.product.ProductResponseDto;
 
 import java.util.List;
 import java.util.UUID;

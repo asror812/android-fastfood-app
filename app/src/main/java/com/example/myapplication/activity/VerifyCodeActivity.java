@@ -25,89 +25,59 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class VerifyCodeActivity extends AppCompatActivity {
-    private TextView tvSubtitle, tvTimer, tvResend;
-    private int resendCount = 0;
-    private CountDownTimer countDownTimer;
-    private static final int MAX_RESEND = 3;
-    private static final long TIMER_DURATION = 60_000;
 
-    private AuthApi api;
+    private TextView tvSubtitle, tvTimer, tvResend;
     private EditText etCode;
 
+    private AuthApi api;
+
     private String phone;
+
+    private int resendCount = 0;
+
+    private static final int MAX_RESEND = 2;
+    private static final long TIMER_DURATION = 60_000; // 60 секунд
+    private CountDownTimer countDownTimer;
+
+    private static final String TAG = "VERIFY";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_verify_code);
 
+        api = ApiClient.getClient(this).create(AuthApi.class);
+
+        phone = getIntent().getStringExtra("user_phone");
+        if (phone == null || phone.trim().isEmpty()) {
+            toast("Telefon raqam topilmadi");
+            finish();
+            return;
+        }
+
+        initViews();
+        initUi();
+        initListeners();
+
+        startTimer();
+    }
+
+    private void initViews() {
         tvSubtitle = findViewById(R.id.tvSubtitle);
         tvTimer = findViewById(R.id.tvTimer);
         tvResend = findViewById(R.id.resend);
         etCode = findViewById(R.id.etCode);
+    }
 
-        phone = getIntent().getStringExtra("user_phone");
+    private void initUi() {
+        tvSubtitle.setText("Bir martalik kod " + maskPhone(phone) + " raqaminga yuborildi");
+        setResendEnabled(false);
+    }
 
-        //Mask phone
-        if (phone != null && phone.length() >= 5) {
-            String masked = maskPhone(phone);
-            tvSubtitle.setText("Bir martalik kod " + masked + " raqaminga yuborildi");
-        }
+    private void initListeners() {
+        tvResend.setOnClickListener(v -> requestResendOtp());
 
-        api = ApiClient.getClient(VerifyCodeActivity.this).create(AuthApi.class);
-        startTimer();
-
-        tvResend.setOnClickListener(v -> {
-            if (resendCount < MAX_RESEND) {
-                resendCount++;
-                startTimer();
-
-                // SEND OTP REQUEST
-                api.validatePhoneNumber(new ValidatePhoneNumberDto(phone, null))
-                        .enqueue(new Callback<>() {
-                            @Override
-                            public void onResponse(Call<ApiMessageResponse> call, Response<ApiMessageResponse> response) {
-                                // ---- HANDLE 429 LIMIT ERROR ----
-                                if (response.code() == 429) {
-                                    handleOtpLimit(response);
-                                    return;
-                                }
-
-                                // ---- GENERAL ERROR ----
-                                if (!response.isSuccessful() || response.body() == null) {
-                                    Log.e("API", "Error: " + response.code());
-                                    Toast.makeText(VerifyCodeActivity.this, "Server xatosi", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-
-                                ApiMessageResponse res = response.body();
-                                String msg = res.getMessage();
-
-                                if (msg.equals("Sms was sent successfully")) {
-                                    Toast.makeText(VerifyCodeActivity.this, "Kod yuborildi", Toast.LENGTH_SHORT).show();
-
-                                } else if (msg.equals("Sms was re-send successfully")) {
-                                    Toast.makeText(VerifyCodeActivity.this, "Kod qayta yuborildi", Toast.LENGTH_SHORT).show();
-
-                                } else {
-                                    Toast.makeText(VerifyCodeActivity.this, "Xatolik: " + msg, Toast.LENGTH_SHORT).show();
-                                    Log.e("API", "Unexpected: " + msg);
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(Call<ApiMessageResponse> call, Throwable t) {
-                                Log.e("API", "Error: " + t.getMessage());
-                                Toast.makeText(VerifyCodeActivity.this, "Internet xatosi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        });
-            } else {
-                Toast.makeText(this, "Siz faqat 2 marta qayta yuborishingiz mumkin", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
-        // Detect 5 digits automatically
+        // Авто-проверка при вводе 5 цифр
         etCode.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -115,7 +85,7 @@ public class VerifyCodeActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() == 5) {
+                if (s != null && s.length() == 5) {
                     verifyOtp(s.toString());
                 }
             }
@@ -124,6 +94,158 @@ public class VerifyCodeActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
+    }
+
+    private void requestResendOtp() {
+        if (resendCount >= MAX_RESEND) {
+            toast("Siz faqat " + MAX_RESEND + " marta qayta yuborishingiz mumkin");
+            setResendEnabled(false);
+            return;
+        }
+
+        // пока идет запрос — блокируем resend
+        setResendEnabled(false);
+
+        api.validatePhoneNumber(new ValidatePhoneNumberDto(phone, null))
+                .enqueue(new Callback<ApiMessageResponse>() {
+                    @Override
+                    public void onResponse(Call<ApiMessageResponse> call, Response<ApiMessageResponse> response) {
+
+                        // лимит по серверу (429)
+                        if (response.code() == 429) {
+                            handleOtpLimit(response);
+                            // если лимит — не включаем resend обратно
+                            return;
+                        }
+
+                        if (!response.isSuccessful()) {
+                            Log.e(TAG, "Resend HTTP error: " + response.code());
+                            toast("Server xatosi: " + response.code());
+                            // разрешим попробовать снова (если ещё можно)
+                            setResendEnabled(resendCount < MAX_RESEND);
+                            return;
+                        }
+
+                        ApiMessageResponse body = response.body();
+                        if (body == null) {
+                            toast("Server xatosi: body null");
+                            setResendEnabled(resendCount < MAX_RESEND);
+                            return;
+                        }
+
+                        resendCount++;
+                        toast("Kod yuborildi");
+                        etCode.setText("");
+                        startTimer();
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiMessageResponse> call, Throwable t) {
+                        Log.e(TAG, "Resend failure: " + t.getMessage());
+                        toast("Internet xatosi: " + t.getMessage());
+                        // разрешим снова нажать (если лимит не достигнут)
+                        setResendEnabled(resendCount < MAX_RESEND);
+                    }
+                });
+    }
+
+    private void verifyOtp(String code) {
+        // защита от краша и мусора
+        if (code == null || !code.matches("\\d{5}")) {
+            toast("Kod 5 ta raqam bo‘lishi kerak");
+            etCode.setText("");
+            return;
+        }
+
+        int otp = Integer.parseInt(code);
+
+        // блокируем ввод, чтобы не отправляли много раз
+        setCodeEnabled(false);
+
+        api.validatePhoneNumber(new ValidatePhoneNumberDto(phone, otp))
+                .enqueue(new Callback<ApiMessageResponse>() {
+                    @Override
+                    public void onResponse(Call<ApiMessageResponse> call, Response<ApiMessageResponse> response) {
+                        setCodeEnabled(true);
+
+                        if (response.code() == 429) {
+                            handleOtpLimit(response);
+                            return;
+                        }
+
+                        if (!response.isSuccessful() || response.body() == null) {
+                            toast("Kod noto‘g‘ri yoki xatolik: " + response.code());
+                            etCode.setText("");
+                            return;
+                        }
+
+                        ApiMessageResponse res = response.body();
+
+                        if ("Otp was successfully verified".equals(res.getMessage())) {
+                            toast("Welcome!");
+
+                            startActivity(new Intent(VerifyCodeActivity.this, LoginActivity.class));
+                            finish();
+                        } else {
+                            toast("Incorrect code");
+                            etCode.setText("");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiMessageResponse> call, Throwable t) {
+                        setCodeEnabled(true);
+                        toast("Internet Error: " + t.getMessage());
+                    }
+                });
+    }
+
+    private void startTimer() {
+        if (countDownTimer != null) countDownTimer.cancel();
+
+        setResendEnabled(false);
+        tvTimer.setText("01:00");
+
+        countDownTimer = new CountDownTimer(TIMER_DURATION, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                int totalSeconds = (int) (millisUntilFinished / 1000);
+                int minutes = totalSeconds / 60;
+                int seconds = totalSeconds % 60;
+                tvTimer.setText(String.format("%02d:%02d", minutes, seconds));
+            }
+
+            @Override
+            public void onFinish() {
+                tvTimer.setText("00:00");
+                // включаем resend только если не достигли лимита
+                setResendEnabled(resendCount < MAX_RESEND);
+            }
+        }.start();
+    }
+
+    private void setResendEnabled(boolean enabled) {
+        tvResend.setEnabled(enabled);
+        tvResend.setAlpha(enabled ? 1f : 0.4f);
+    }
+
+    private void setCodeEnabled(boolean enabled) {
+        etCode.setEnabled(enabled);
+        etCode.setAlpha(enabled ? 1f : 0.7f);
+    }
+
+    private void toast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private String maskPhone(String phone) {
+        if (phone == null) return "";
+
+        if (phone.length() < 7) return phone;
+
+        String start = phone.substring(0, Math.min(7, phone.length()));
+        String end = phone.substring(Math.max(phone.length() - 2, 0));
+        return start + "***" + end;
     }
 
     private void handleOtpLimit(Response<ApiMessageResponse> response) {
@@ -139,76 +261,14 @@ public class VerifyCodeActivity extends AppCompatActivity {
         } catch (Exception ex) {
             Toast.makeText(this, "Xatolik yuz berdi", Toast.LENGTH_SHORT).show();
         }
-    }
 
-    private void verifyOtp(String code) {
-        ValidatePhoneNumberDto req = new ValidatePhoneNumberDto(phone, Integer.valueOf(code));
-
-        api.validatePhoneNumber(req).enqueue(new Callback<>() {
-            @Override
-            public void onResponse(Call<ApiMessageResponse> call, Response<ApiMessageResponse> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(VerifyCodeActivity.this, "Internal Server Error", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                ApiMessageResponse res = response.body();
-
-                if (res.getMessage().equals("Otp was successfully verified")) {
-                    Toast.makeText(VerifyCodeActivity.this, "Welcome!", Toast.LENGTH_SHORT).show();
-
-                    Intent i = new Intent(VerifyCodeActivity.this, LoginActivity.class);
-                    startActivity(i);
-                    finish();
-                } else {
-                    Toast.makeText(VerifyCodeActivity.this, "Incorrect code", Toast.LENGTH_SHORT).show();
-                    etCode.setText("");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ApiMessageResponse> call, Throwable t) {
-                Toast.makeText(VerifyCodeActivity.this,
-                        "Internet Error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private String maskPhone(String phone) {
-        if (phone.length() <= 5) return phone;
-        String firstFive = phone.substring(0, 7);
-        return firstFive + "-**-**";
-    }
-
-    private void startTimer() {
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-        }
-
-        tvTimer.setText("01:00");
-
-        countDownTimer = new CountDownTimer(TIMER_DURATION, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                int seconds = (int) (millisUntilFinished / 1000);
-                int minutes = seconds / 60;
-                int secs = seconds % 60;
-                tvTimer.setText(String.format("%02d:%02d", minutes, secs));
-            }
-
-            @Override
-            public void onFinish() {
-                tvTimer.setText("00:00");
-            }
-        }.start();
+        // При лимите лучше полностью отключить resend
+        setResendEnabled(false);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-        }
+        if (countDownTimer != null) countDownTimer.cancel();
     }
 }

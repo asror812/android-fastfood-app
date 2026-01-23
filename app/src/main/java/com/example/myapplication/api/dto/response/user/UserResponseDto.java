@@ -1,4 +1,4 @@
-package com.example.myapplication.api.dto.response;
+package com.example.myapplication.api.dto.response.user;
 
 
 import java.util.List;
@@ -8,8 +8,6 @@ import java.util.UUID;
 import com.example.myapplication.api.dto.request.UserDto;
 
 public class UserResponseDto extends UserDto {
-    private AddressResponseDto address;
-
     public Set<UUID> favouriteProducts;
 
     private List<UserBonusResponseDto> userBonuses;
